@@ -33,6 +33,8 @@ def main():
 	
 	cnt = 0
 	
+	cur_tot_image = 0;
+	
 	for cur_dir in seq_dirs:
 		print(cur_dir)
 		cur_seq = os.listdir(os.path.join(DATA_PATH,cur_dir,cur_dir[0:10],cur_dir,"image_02/data"))
@@ -71,8 +73,8 @@ def main():
 		
 		for i,seq in enumerate(cur_seq):
 			#print(cur_dir,seq[:-4],os.path.join(DATA_PATH,cur_dir,cur_dir[0:10],cur_dir,"velodyne_points/data","%s.bin"%(seq[:-4])),os.path.join(DATA_PATH,cur_dir,cur_dir[0:10],cur_dir,"image_02/data","%s.png"%(seq[:-4])))
-			positives=np.setdiff1d(ind_nn[i],[i]).tolist()
-			negatives=np.setdiff1d(np.arange(0,len(cur_seq)),ind_r[i]).tolist()
+			positives=(np.setdiff1d(ind_nn[i],[i])+cur_tot_image).tolist()
+			negatives=(np.setdiff1d(np.arange(0,len(cur_seq)),ind_r[i])+cur_tot_image).tolist()
 			random.shuffle(positives)
 			random.shuffle(negatives)
 			#print(positives)
@@ -81,7 +83,10 @@ def main():
 			#print(queries[cnt])
 			cnt = cnt + 1
 			if cnt%100 == 0:
-				print(cnt)	
+				print(cnt)
+		
+		cur_tot_image += len(cur_seq)
+	
 	
 	filename = "pcai_training.pickle"
 	with open(filename, 'wb') as handle:
@@ -90,8 +95,5 @@ def main():
 	print("Done ", filename)
 			
 			
-				
-		
-
 if __name__ == '__main__':
 	main()
