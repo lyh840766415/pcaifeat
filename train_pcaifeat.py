@@ -1,5 +1,5 @@
 import numpy as np
-from loading_pointclouds import *
+from loading_input import *
 import random
 
 TRAIN_FILE = 'generate_queries/pcai_training.pickle'
@@ -32,31 +32,37 @@ def init_pcainetwork():
 #output
 	#numpy matrix in the memory
 def get_query_tuple(dict_value, num_pos, num_neg, QUERY_DICT):
-	query,success_1=load_pc_file(dict_value["query_pc"]) #Nx3
+	query_pc,success_1_pc=load_pc_file(dict_value["query_pc"]) #Nx3
+	query_img,success_1_img = load_image(dict_value["query_img"])
 
 	random.shuffle(dict_value["positives"])
-	pos_files=[]
-	
+	pos_pc_files=[]
+	pos_img_files=[]
 	#load positive pointcloud
 	for i in range(num_pos):
-		pos_files.append(QUERY_DICT[dict_value["positives"][i]]["query_pc"])
+		pos_pc_files.append(QUERY_DICT[dict_value["positives"][i]]["query_pc"])
+		pos_img_files.append(QUERY_DICT[dict_value["positives"][i]]["query_img"])
+		
 	#positives= load_pc_files(dict_value["positives"][0:num_pos])
-	positives,success_2=load_pc_files(pos_files)
+	positives_pc,success_2_pc=load_pc_files(pos_pc_files)
+	positives_img,success_2_img=load_images(pos_img_files)
+	
 
-	neg_files=[]
+	neg_pc_files=[]
+	neg_img_files=[]
 	neg_indices=[]
 	random.shuffle(dict_value["negatives"])	
-	for i in range(num_neg):		
-		if len(dict_value["negatives"]) < num_neg:
-			print("Error len(QUERY_DICT[dict_value[negatives])< num_neg")
-		neg_files.append(QUERY_DICT[dict_value["negatives"][i]]["query_pc"])
+	for i in range(num_neg):
+		neg_pc_files.append(QUERY_DICT[dict_value["negatives"][i]]["query_pc"])
+		neg_img_files.append(QUERY_DICT[dict_value["negatives"][i]]["query_img"])
 		neg_indices.append(dict_value["negatives"][i])
 	
-	negatives,success_3=load_pc_files(neg_files)
-	if(success_1 and success_2 and success_3):
-		return [query,positives,negatives],True
+	negatives_pc,success_3_pc=load_pc_files(neg_pc_files)
+	negatives_img,success_3_img=load_images(neg_img_files)
+	if(success_1_pc and success_1_img and success_2_pc and success_2_img and success_3_pc and success_3_img):
+		return [query_pc,query_img,positives_pc,positives_img,negatives_pc,negatives_img],True
 	
-	return [query,positives,negatives],False
+	return [query_pc,query_img,positives_pc,positives_img,negatives_pc,negatives_img],False
 
 #module that pass the batch_data to tensorflow placeholder
 def training_one_batch():
@@ -105,7 +111,7 @@ def main():
 					break
 					 
 				q_tuples.append(cur_tuples)
-				print(q_tuples[j])
+				#print(q_tuples[j])
 			if faulty_tuple:
 				error_cnt += 1;
 				continue;
