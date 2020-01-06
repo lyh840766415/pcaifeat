@@ -21,12 +21,12 @@ def placeholder_inputs(batch_num_queries, num_pointclouds_per_query, num_point):
 def pointnetvlad(point_cloud, is_training, bn_decay=None):
     """PointNetVLAD,    INPUT is batch_num_queries X num_pointclouds_per_query X num_points_per_pointcloud X 3, 
                         OUTPUT batch_num_queries X num_pointclouds_per_query X output_dim """
-    batch_num_queries = point_cloud.get_shape()[0].value
-    num_pointclouds_per_query = point_cloud.get_shape()[1].value
-    num_points = point_cloud.get_shape()[2].value
+    #batch_num_queries = point_cloud.get_shape()[0].value
+    #num_pointclouds_per_query = point_cloud.get_shape()[1].value
+    num_points = point_cloud.get_shape()[1].value
     CLUSTER_SIZE=64
     OUTPUT_DIM=256
-    point_cloud = tf.reshape(point_cloud, [batch_num_queries*num_pointclouds_per_query, num_points,3])
+    #point_cloud = tf.reshape(point_cloud, [batch_num_queries*num_pointclouds_per_query, num_points,3])
 
     with tf.variable_scope('transform_net1') as sc:
         input_transform = input_transform_net(point_cloud, is_training, bn_decay, K=3)
@@ -71,7 +71,7 @@ def pointnetvlad(point_cloud, is_training, bn_decay=None):
 
     #normalize to have norm 1
     output = tf.nn.l2_normalize(output,1)
-    output =  tf.reshape(output,[batch_num_queries,num_pointclouds_per_query,OUTPUT_DIM])
+    #output =  tf.reshape(output,[batch_num_queries,num_pointclouds_per_query,OUTPUT_DIM])
 
     return output
 

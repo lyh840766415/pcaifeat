@@ -12,7 +12,7 @@ TRAINING_QUERIES = get_queries_dict(TRAIN_FILE)
 BATCH_NUM_QUERIES = 2
 EPOCH = 1
 POSITIVES_PER_QUERY = 2
-NEGATIVES_PER_QUERY = 2
+NEGATIVES_PER_QUERY = 18
 
 def get_bn_decay(batch):
 	#batch norm parameter
@@ -47,7 +47,7 @@ def init_imgnetwork():
 def init_pcnetwork():
 	batch_size = 2
 	embbed_size = 128
-	pc_placeholder = tf.placeholder(tf.float32,shape=[batch_size,1,4096,3])
+	pc_placeholder = tf.placeholder(tf.float32,shape=[batch_size*(1+POSITIVES_PER_QUERY+NEGATIVES_PER_QUERY),4096,3])
 	is_training_pl = tf.Variable(True, name = 'is_training')
 	bn_decay = tf.Variable(1.0,name = 'bn_decay')
 	#bn_decay = get_bn_decay(100)
@@ -75,6 +75,20 @@ def init_pcnetwork():
 def init_pcainetwork():
 	images_placeholder,img_feat = init_imgnetwork()
 	pc_placeholder,pc_feat = init_pcnetwork()
+	img_feat = tf.reshape(img_feat,[BATCH_NUM_QUERIES,(1+POSITIVES_PER_QUERY+NEGATIVES_PER_QUERY),img_feat.shape[1]])
+	pc_feat = tf.reshape(pc_feat,[BATCH_NUM_QUERIES,(1+POSITIVES_PER_QUERY+NEGATIVES_PER_QUERY),pc_feat.shape[1]])
+	q_img_vec, pos_img_vecs, neg_img_vecs = tf.split(img_feat, [1,POSITIVES_PER_QUERY,NEGATIVES_PER_QUERY],1)
+	q_pc_vec, pos_pc_vecs, neg_pc_vecs = tf.split(img_feat, [1,POSITIVES_PER_QUERY,NEGATIVES_PER_QUERY],1)
+	
+	print(q_img_vec)
+	print(pos_img_vecs)
+	print(neg_img_vecs)
+	
+	print(q_pc_vec)
+	print(pos_pc_vecs)
+	print(neg_pc_vecs)
+	
+	q_img_vec, pos_img_vecs, neg_img_vecs= tf.split(out_vecs, [1,POSITIVES_PER_QUERY,NEGATIVES_PER_QUERY,1],1)
 	
 	
 	return images_placeholder,pc_placeholder,img_feat,pc_feat
@@ -113,8 +127,14 @@ def get_query_tuple(dict_value, num_pos, num_neg, QUERY_DICT):
 	negatives_pc,success_3_pc=load_pc_files(neg_pc_files)
 	negatives_img,success_3_img=load_images(neg_img_files)
 	
+	
 	if(success_1_pc and success_1_img and success_2_pc and success_2_img and success_3_pc and success_3_img):
-		return [query_pc,query_img,positives_pc,positives_img,negatives_pc,negatives_img],True
+		query_pc = np.expand_dims(query_pc,axis = 0)
+		query_img = np.expand_dims(query_img,axis = 0)
+		img = np.concatenate((query_img,positives_img,negatives_img),axis=0)
+		pc = np.concatenate((query_pc,positives_pc,negatives_pc),axis=0)
+		
+		return [pc,img],True
 	
 
 	return [query_pc,query_img,positives_pc,positives_img,negatives_pc,negatives_img],False
@@ -174,37 +194,32 @@ def main():
 					q_tuples.append(cur_tuples)
 					
 				if faulty_tuple:
-					error_cnt += 1;
-					continue;
-				
-				for que_i, cur in enumerate(q_tuples):
-					query_pc = cur[0]
-					query_pc = np.expand_dims(query_pc,axis = 0)
-					query_img = cur[1]
-					query_img = np.expand_dims(query_img,axis = 0)
-					positives_pc = cur[2]
-					positives_img = cur[3]
-					negatives_pc = cur[4]
-					negatives_img = cur[5]
+					error_cnt += 1
+					continue
 					
-					img = np.concatenate((query_img,positives_img,negatives_img),axis=0)
-					pc = np.concatenate((query_pc,positives_pc,negatives_pc),axis=0)
-					print(img.shape,pc.shape)
-					
-					print(query_pc.shape,query_img.shape,positives_pc.shape,positives_img.shape,negatives_pc[0].shape,negatives_img.shape)
-					for j in range(img.shape[0]):
-						cv2.imwrite("%d_%d.png"%(que_i,j),img[j])
-						
-					for j in range(pc.shape[0]):
-						np.savetxt("%d_%d.txt"%(que_i,j), pc[j], fmt="%.5f", delimiter = ',')
-				exit()
+				cur_bat_pc = q_tuples[0][0]
+				cur_bat_img = q_tuples[0][1]
 				
+				for bat, cur_tuple in enumerate(q_tuples):
+					if bat == 0:
+						continue
+					cur_bat_pc = np.concatenate((cur_bat_pc,cur_tuple[0]),axis=0)
+					cur_bat_img = np.concatenate((cur_bat_img,cur_tuple[1]),axis=0)
+				
+				print(cur_bat_pc.shape)
+				print(cur_bat_img.shape)			
+					
+					
+				#start training
 				train_feed_dict = {
-					images_placeholder:cur_tuples[3]				
+					images_placeholder:cur_bat_img,
+					pc_placeholder:cur_bat_pc							
 				}
-				#image_feat = sess.run([logits],feed_dict = train_feed_dict)
 				
-				print(image_feat)
+				image_feat,point_feat = sess.run([img_feat,pc_feat],feed_dict = train_feed_dict)
+				
+				print("image feat",image_feat.shape)
+				print("image feat",point_feat.shape)
 	
 	print("error_cnt = %d"%(error_cnt))
 				

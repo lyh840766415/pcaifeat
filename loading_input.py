@@ -17,7 +17,7 @@ def load_pc_file(filename):
 	if not os.path.exists(filename):
 		return np.array([]),False
 	#returns Nx3 matrix
-	print(filename)
+	#print(filename)
 	pc = np.fromfile(filename, dtype=np.float32, count=-1).reshape([-1,4])
 	pc_4096 = np.zeros((4096,3), dtype=np.float)
 	for i in range(4096):
