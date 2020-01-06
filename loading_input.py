@@ -2,6 +2,7 @@ import pickle
 import numpy as np
 import os
 import cv2
+import random
 
 BASE_PATH = "/"
 
@@ -11,19 +12,28 @@ def get_queries_dict(filename):
 		queries = pickle.load(handle)
 		print("Queries Loaded.")
 		return queries
-		
-def load_pc_file(filename): 
-	if not os.path.exists(os.path.join(BASE_PATH,filename)): 
+
+def load_pc_file(filename):
+	if not os.path.exists(filename):
 		return np.array([]),False
 	#returns Nx3 matrix
-	pc=np.fromfile(os.path.join(BASE_PATH,filename), dtype=np.float64)
-
-	if(pc.shape[0]!= 4096*3):
-		print("pointcloud shape %d"%(pc.shape[0]//3))
+	print(filename)
+	pc = np.fromfile(filename, dtype=np.float32, count=-1).reshape([-1,4])
+	pc_4096 = np.zeros((4096,3), dtype=np.float)
+	for i in range(4096):
+		rand = random.randint(0,pc.shape[0]-1)
+		pc_4096[i,:] = pc[rand,0:3]
+			
+	if(pc_4096.shape[0]!= 4096):
+		print("Error:code fatal error at loading_input.py def load_pc_file")
+		exit()
+		
+	#print("pointcloud shape ", pc_4096.shape)
+	#np.savetxt('result.txt', pc_4096, fmt="%.5f", delimiter = ',')
+	#exit()
 		#return np.array([])
 
-	#pc=np.reshape(pc,(pc.shape[0]//3,3))
-	return pc,True
+	return pc_4096,True
 
 def load_pc_files(filenames):
 	pcs=[]
@@ -37,15 +47,15 @@ def load_pc_files(filenames):
 		pcs.append(pc)
 	pcs=np.array(pcs)
 	return pcs,True
-	
+
 def load_image(filename):
 	#return scaled image
-	if not os.path.exists(filename): 
+	if not os.path.exists(filename):
 		return np.array([]),False
 	img = cv2.imread(filename)
 	img = cv2.resize(img,(288,144))
 	return img,True
-	
+
 def load_images(filenames):
 	imgs=[]
 	for filename in filenames:
@@ -57,4 +67,3 @@ def load_images(filenames):
 	imgs=np.array(imgs)
 	return imgs,True
 
-	
