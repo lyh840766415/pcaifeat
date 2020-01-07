@@ -6,7 +6,7 @@ import cv2
 import nets.resnet_v1_50 as resnet
 import tensorflow as tf
 
-
+LOG_DIR = "log"
 TRAIN_FILE = 'generate_queries/pcai_training.pickle'
 TRAINING_QUERIES = get_queries_dict(TRAIN_FILE)
 BATCH_NUM_QUERIES = 2
@@ -125,8 +125,10 @@ def init_pcainetwork():
 	print(q_vec)
 	print(pos_vec)
 	print(neg_vec)
+	# Add summary writers
+	merged = tf.summary.merge_all()
 
-	return images_placeholder,pc_placeholder,epoch_num_placeholder,img_feat,pc_feat,all_loss,img_loss,pc_loss,train_op
+	return images_placeholder,pc_placeholder,epoch_num_placeholder,img_feat,pc_feat,all_loss,img_loss,pc_loss,train_op,merged,batch
 
 #module that used to load data from Hard Disk
 #input
@@ -185,7 +187,7 @@ def evalute_and_log():
 
 
 def main():
-	images_placeholder,pc_placeholder,epoch_num_placeholder,img_feat,pc_feat,all_loss,img_loss,pc_loss,train_op = init_pcainetwork()
+	images_placeholder,pc_placeholder,epoch_num_placeholder,img_feat,pc_feat,all_loss,img_loss,pc_loss,train_op,merged,batch = init_pcainetwork()
 	print(TRAINING_QUERIES[0])
 	error_cnt = 0
 
@@ -196,6 +198,7 @@ def main():
 	#Start training
 	with tf.Session(config=config) as sess:
 		sess.run(tf.global_variables_initializer())
+		train_writer = tf.summary.FileWriter(os.path.join(LOG_DIR, 'train'),sess.graph)
 		for ep in range(EPOCH):
 			train_file_idxs = np.arange(0,len(TRAINING_QUERIES.keys()))
 			#print(train_file_idxs)
@@ -252,7 +255,9 @@ def main():
 					epoch_num_placeholder:ep
 				}
 
-				run_loss,_ = sess.run([img_loss,train_op],feed_dict = train_feed_dict)
+				summary,step,run_loss,_ = sess.run([merged,batch,img_loss,train_op],feed_dict = train_feed_dict)
+				
+				train_writer.add_summary(summary, step)
 
 				#print("image feat",image_feat.shape)
 				#print("image feat",point_feat.shape)
