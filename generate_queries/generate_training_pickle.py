@@ -12,22 +12,28 @@ import pickle
 	#selected seq_name
 	#selected seq_num
 def load_sequence(DATA_PATH):
+	tot_img_size = 0
 	seq_num = 0
 	dirs = os.listdir(DATA_PATH)
 	seq_dirs=np.empty(0,dtype=object)
 	for cur_dir in dirs :
 		if os.path.isdir(os.path.join(DATA_PATH,cur_dir,cur_dir[0:10],cur_dir,"image_02/data")):
 			#保证序列长度
-			if len(os.listdir(os.path.join(DATA_PATH,cur_dir,cur_dir[0:10],cur_dir,"image_02/data"))) > 300:
+			if len(os.listdir(os.path.join(DATA_PATH,cur_dir,cur_dir[0:10],cur_dir,"image_02/data"))) > 1000:
+				tot_img_size = tot_img_size + len(os.listdir(os.path.join(DATA_PATH,cur_dir,cur_dir[0:10],cur_dir,"image_02/data")))
 				print(os.path.join(DATA_PATH,cur_dir,cur_dir[0:10],cur_dir,"image_02/data"))
 				print(len(os.listdir(os.path.join(DATA_PATH,cur_dir,cur_dir[0:10],cur_dir,"image_02/data"))))
 				seq_num+=1	
 				seq_dirs = np.append(seq_dirs,cur_dir)
+				
+	print("tot_img_size = ",tot_img_size)
+	print("seq_size = ",seq_num)
 	return seq_dirs,seq_num
 	
 def main():
 	DATA_PATH = "/home/lyh/lab/dataset/KITTI_RAW"
 	seq_dirs,seq_num = load_sequence(DATA_PATH)
+	exit()
 	
 	queries = {}
 	

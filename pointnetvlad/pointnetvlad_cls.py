@@ -67,7 +67,7 @@ def pointnetvlad(point_cloud, is_training, bn_decay=None):
     net= tf.reshape(net,[-1,1024])
     net = tf.nn.l2_normalize(net,1)
     output = NetVLAD.forward(net)
-    print(output)
+    #print(output)
 
     #normalize to have norm 1
     output = tf.nn.l2_normalize(output,1)
