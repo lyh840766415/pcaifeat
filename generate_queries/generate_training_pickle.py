@@ -19,7 +19,7 @@ def load_sequence(DATA_PATH):
 	for cur_dir in dirs :
 		if os.path.isdir(os.path.join(DATA_PATH,cur_dir,cur_dir[0:10],cur_dir,"image_02/data")):
 			#保证序列长度
-			if len(os.listdir(os.path.join(DATA_PATH,cur_dir,cur_dir[0:10],cur_dir,"image_02/data"))) > 1000:
+			if len(os.listdir(os.path.join(DATA_PATH,cur_dir,cur_dir[0:10],cur_dir,"image_02/data"))) > 300:
 				tot_img_size = tot_img_size + len(os.listdir(os.path.join(DATA_PATH,cur_dir,cur_dir[0:10],cur_dir,"image_02/data")))
 				print(os.path.join(DATA_PATH,cur_dir,cur_dir[0:10],cur_dir,"image_02/data"))
 				print(len(os.listdir(os.path.join(DATA_PATH,cur_dir,cur_dir[0:10],cur_dir,"image_02/data"))))
@@ -33,7 +33,6 @@ def load_sequence(DATA_PATH):
 def main():
 	DATA_PATH = "/home/lyh/lab/dataset/KITTI_RAW"
 	seq_dirs,seq_num = load_sequence(DATA_PATH)
-	exit()
 	
 	queries = {}
 	

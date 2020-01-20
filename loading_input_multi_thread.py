@@ -3,6 +3,7 @@ import numpy as np
 import os
 import cv2
 import random
+from multiprocessing.dummy import Pool as ThreadPool
 
 
 BASE_PATH = "/"
@@ -17,7 +18,7 @@ def get_queries_dict(filename):
 def load_pc_file(filename):
 	if not os.path.exists(filename):
 		print(filename)
-		return np.zeros((4096,3)),True
+		return np.zeros((4096,3))
 		
 	#returns Nx3 matrix
 	#print(filename)
@@ -36,10 +37,15 @@ def load_pc_file(filename):
 	#exit()
 		#return np.array([])
 
-	return pc_4096,True
+	return pc_4096
 
 def load_pc_files(filenames):
 	pcs=[]
+	pool = ThreadPool(100)
+	pcs = pool.map(load_pc_file,filenames)
+	pool.close()
+	pool.join()
+	'''
 	for filename in filenames:
 		#print(filename)
 		pc,success=load_pc_file(filename)
@@ -48,27 +54,34 @@ def load_pc_files(filenames):
 		#if(pc.shape[0]!=4096):
 		#	continue
 		pcs.append(pc)
+	'''
 	pcs=np.array(pcs)
+	
 	return pcs,True
 
 def load_image(filename):
 	#return scaled image
 	if not os.path.exists(filename):
 		print(filename)
-		return np.zeros((288,144,3)),True
+		return np.zeros((288,144,3))
 		
 	img = cv2.imread(filename)
 	img = cv2.resize(img,(288,144))
-	return img,True
+	return img
 
 def load_images(filenames):
 	imgs=[]
+	pool = ThreadPool(100)
+	imgs = pool.map(load_image,filenames)
+	pool.close()
+	pool.join()
+	'''
 	for filename in filenames:
 		#print(filename)
 		img,success=load_image(filename)
 		if not success:
 			return np.array([]),False
 		imgs.append(img)
+	'''
 	imgs=np.array(imgs)
 	return imgs,True
-

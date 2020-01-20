@@ -9,8 +9,9 @@ import tensorflow as tf
 LOG_DIR = "log"
 TRAIN_FILE = 'generate_queries/pcai_training.pickle'
 TRAINING_QUERIES = get_queries_dict(TRAIN_FILE)
+MODEL_PATH = '/home/lyh/lab/pcaifeat/log/train_save_backup/model_378000.ckpt'
 BATCH_NUM_QUERIES = 2
-EPOCH = 10
+EPOCH = 50
 POSITIVES_PER_QUERY = 2
 NEGATIVES_PER_QUERY = 2
 EMBBED_SIZE = 128
@@ -180,7 +181,8 @@ def main():
 
 	#Start training
 	with tf.Session(config=config) as sess:
-		sess.run(tf.global_variables_initializer())
+		saver.restore(sess, MODEL_PATH)
+		#sess.run(tf.global_variables_initializer())
 		train_writer = tf.summary.FileWriter(os.path.join(LOG_DIR, 'train_save'),sess.graph)
 		for ep in range(EPOCH):
 			train_file_idxs = np.arange(0,len(TRAINING_QUERIES.keys()))

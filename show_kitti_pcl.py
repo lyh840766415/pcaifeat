@@ -4,7 +4,8 @@ from mpl_toolkits.mplot3d import Axes3D
 import random
 
 def readXYZfile():
-	pointcloud_all = np.fromfile(str("0000000000.bin"), dtype=np.float32, count=-1).reshape([-1,4])
+	filename = "/home/lyh/lab/dataset/KITTI_RAW/2011_09_30_drive_0020_sync/2011_09_30/2011_09_30_drive_0020_sync/velodyne_points/data/0000000450.bin"
+	pointcloud_all = np.fromfile(filename, dtype=np.float32, count=-1).reshape([-1,4])
 	
 	pointcloud = np.zeros((4096,3), dtype=np.float)
 	for i in range(4096):
@@ -14,7 +15,7 @@ def readXYZfile():
 	for i in range(pointcloud_all.shape[0]):
 		print(pointcloud_all[i,0],pointcloud_all[i,1],pointcloud_all[i,2])
 		
-	np.savetxt('result.txt', pointcloud_all, fmt = "%.5f",delimiter = ',')
+	np.savetxt('result.txt', pointcloud_all+50000, fmt = "%.5f",delimiter = ',')
 	exit()
 	print(pointcloud.shape)
 	x = pointcloud[:, 0]  # x position of point
