@@ -21,7 +21,17 @@ import pickle
 import shutil
 
 
+def load_pc_file(filename):
+	#returns Nx3 matrix
+	pc=np.fromfile(filename, dtype=np.float64)
 
+	if(pc.shape[0]!= 4096*3):
+		print("Error in pointcloud shape")
+		return np.array([])
+
+	pc=np.reshape(pc,(pc.shape[0]//3,3))
+	return pc
+	
 def main():
 	#load position gps/ins data
 	POS_FILE_PATH = "/home/lyh/lab/benchmark_datasets/oxford_img/2014-05-19-13-20-57/2014-05-19-13-20-57/gps/ins.csv"
@@ -126,7 +136,8 @@ def main():
 		if os.path.exists(os.path.join("/home/lyh/lab/benchmark_datasets/oxford/2014-05-19-13-20-57/pointcloud_20m_10overlap/","%d.bin"%(pc_time_pos[i,0]))):
 			#print("exist",os.path.join("/home/lyh/lab/benchmark_datasets/oxford/2014-05-19-13-20-57/pointcloud_20m_10overlap/","%d.bin"%(pc_time_pos[i,0])))
 			pc = os.path.join("/home/lyh/lab/benchmark_datasets/oxford/2014-05-19-13-20-57/pointcloud_20m_10overlap/","%d.bin"%(pc_time_pos[i,0]))
-			shutil.copy(os.path.join("/home/lyh/lab/benchmark_datasets/oxford/2014-05-19-13-20-57/pointcloud_20m_10overlap/","%d.bin"%(pc_time_pos[i,0])),os.path.join("./showcase","%d"%(i)))
+			pcl = load_pc_file(pc)
+			np.savetxt(os.path.join("./showcase","%d"%(i),"%d.txt"%(pc_time_pos[i,0])),pcl,fmt = "%.3f")
 		img = []
 		img_num = len(positive_img[i])
 		for j in range(len(positive_img[i])):
